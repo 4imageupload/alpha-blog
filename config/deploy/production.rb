@@ -1,5 +1,3 @@
-server "13.214.127.192", user: "tuannguyen", roles: %w(web app db), primary: true
-
-set :stage, :production
-set :rails_env, :production
-set :deploy_to, "/home/tuannguyen/deploy/apps/"
+set :rails_env, 'production'
+set :puma_env, fetch(:rack_env, fetch(:rails_env, 'production'))
+server '54.169.173.26', user: 'tuannguyen', roles: %w{web app db}

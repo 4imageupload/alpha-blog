@@ -1,6 +1,6 @@
 lock "~> 3.11.0"
 
-set :application, "AlphaBlog"
+set :application, "alpha-blog"
 set :repo_url, "git@github.com:4imageupload/alpha-blog.git"
 
 set :pty, true
@@ -55,3 +55,15 @@ namespace :deploy do
   after  :finishing,    :cleanup
   after  :finishing,    :restart
 end
+
+
+lock '3.11.0' #capistrano version
+
+set :application, 'alpha-blog'
+set :repo_url, 'git@github.com:4imageupload/alpha-blog.git' # Edit this to match your repository
+set :branch, :master #use `git rev-parse --abbrev-ref HEAD`.chomp for pick current branch
+set :deploy_to, '/home/tuannguyen/alpha-blog'
+set :pty, true
+set :linked_files, %w{config/database.yml config/master.key} #if rails 5.2 & above master.key is used insted of application.yml
+set :linked_dirs, %w{log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system public/uploads}
+set :keep_releases, 5
