@@ -1,69 +1,32 @@
-lock "~> 3.11.0"
+lock "~> 3.14.0"
 
-set :application, "alpha-blog"
-set :repo_url, "git@github.com:4imageupload/alpha-blog.git"
+require 'capistrano-db-tasks'
 
-set :pty, true
-set :linked_files, %w(config/database.yml config/application.yml config/puma.rb config/master.key)
-set :linked_dirs, %w(log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system public/uploads)
-set :keep_releases, 5
-set :rvm_type, :user
+#FIXME add your app name here
+set :application, 'aws-rails'
+#FIXME replace 'git@github.com:YOUR-GIT-REPO-HERE' with your git clone url
+set :repo_url, 'git@github.com:4imageupload/alpha-blog.git'
+#FIXME add location on the server here
+set :deploy_to, '/home/deploy/aws-rails'
+set :branch, ENV['BRANCH'] if ENV['BRANCH']
 
-set :puma_rackup, -> {File.join(current_path, "config.ru")}
-set :puma_state, -> {"#{shared_path}/tmp/pids/puma.state"}
-set :puma_pid, -> {"#{shared_path}/tmp/pids/puma.pid"}
-set :puma_bind, -> {"unix://#{shared_path}/tmp/sockets/puma.sock"}
-set :puma_conf, -> {"#{shared_path}/config/puma.rb"}
-set :puma_access_log, -> {"#{release_path}/log/puma_access.log"}
-set :puma_error_log, -> {"#{release_path}/log/puma_error.log"}
-set :puma_role, :app
-# set :puma_env, fetch(:rack_env, fetch(:rails_env, "staging"))
-set :puma_threads, [4, 8]
-set :puma_workers, 0
-set :puma_worker_timeout, nil
-set :puma_init_active_record, true
-set :puma_preload_app, false
+set :linked_files, %w{config/database.yml config/master.key}
+set :linked_dirs, %w{log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}
 
-namespace :puma do
-  desc 'Create Directories for Puma Pids and Socket'
-  task :make_dirs do
-    on roles(:app) do
-      execute "mkdir #{shared_path}/tmp/sockets -p"
-      execute "mkdir #{shared_path}/tmp/pids -p"
-    end
-  end
+set :keep_releases, 3
+set :keep_assets, 3
 
-  before :start, :make_dirs
-end
+set :db_local_clean, true
+set :db_remote_clean, true
 
 namespace :deploy do
-  desc 'Initial Deploy'
-  task :initial do
-    on roles(:app) do
-      before 'deploy:restart', 'puma:start'
-      invoke 'deploy'
-    end
-  end
-
   desc 'Restart application'
   task :restart do
     on roles(:app), in: :sequence, wait: 5 do
-      invoke 'puma:restart'
+      execute :touch, release_path.join('tmp/restart.txt')
     end
   end
-  
-  after  :finishing,    :cleanup
-  after  :finishing,    :restart
+
+  after :publishing, 'deploy:restart'
+  after :finishing, 'deploy:cleanup'
 end
-
-
-lock '3.11.0' #capistrano version
-
-set :application, 'alpha-blog'
-set :repo_url, 'git@github.com:4imageupload/alpha-blog.git' # Edit this to match your repository
-set :branch, :master #use `git rev-parse --abbrev-ref HEAD`.chomp for pick current branch
-set :deploy_to, '/home/tuannguyen/alpha-blog'
-set :pty, true
-set :linked_files, %w{config/database.yml config/master.key} #if rails 5.2 & above master.key is used insted of application.yml
-set :linked_dirs, %w{log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system public/uploads}
-set :keep_releases, 5
